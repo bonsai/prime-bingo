@@ -25,7 +25,7 @@
 
 ### web（ブラウザ版）
 - `web/index.html` をブラウザで開くと、2モードをそのままプレイできます。
-- GitHub Pages: ルートの `index.html` が `web/` へ自動リダイレクトします（リポジトリ設定の **Pages → Deploy from a branch → main / root**）。
+- GitHub Actions（`.github/workflows/pages.yml`）が `web/` をサイトルートに直接配信します（リポジトリ設定の **Pages → Source → GitHub Actions**）。
 
 ### tui（ターミナル版 Prime Fall）
 ```bash
@@ -41,7 +41,7 @@ npm run tui     # = npm run start --workspace tui（tsx src/index.tsx）
 .
 ├── package.json          # workspaces: ["web", "tui"]
 ├── ideas.yaml            # 3つのアイデア整理（素数ハンター / 素数ビンゴ / Prime Fall）
-├── index.html            # GitHub Pages 用エントリ → web/ へリダイレクト
+├── index.html            # ローカル用の簡易エントリ → web/ へリダイレクト
 ├── web/                  # ブラウザ版（依存なし）
 │   ├── index.html        # 2モード切替の本体（Vanilla HTML/CSS/JS）
 │   ├── src/PrimeBingo.tsx    # 元のReact版「倍数を消して素数を集める」プロトタイプ
