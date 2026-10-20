@@ -56,7 +56,7 @@ main{max-width:1000px;margin:auto;padding:12px 18px 36px}.tabs{display:flex;gap:
 (() => {
 const $ = id => document.getElementById(id);
 const prime = n => { if(n < 2) return false; for(let i=2;i*i<=n;i++) if(n%i===0) return false; return true; };
-const primes = Array.from({length:100},(_,i)=>i+1).filter(prime);
+const primes = Array.from({length:200},(_,i)=>i+1).filter(prime);
 function switchMode(mode){
  const hunt=mode==='hunt';
  $('huntMode').classList.toggle('hidden',!hunt); $('bingoMode').classList.toggle('hidden',hunt);
