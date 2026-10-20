@@ -125,3 +125,36 @@ changelog:
     changes:
       - 初版PRD作成
       - 基本機能（F01〜F07）を定義
+
+
+# 2モード構成（ブラウザ版 MVP / 2026-10-20）
+playable_modes:
+  - id: prime-hunter
+    name: 素数ハンター
+    entrypoint: index.html
+    type: action
+    rules:
+      - 1〜100の数字が画面内を移動する
+      - 素数をタップすると10点加算
+      - 素数ではない数字をタップすると5点減点（スコア下限0）
+      - 制限時間は60秒
+      - 経過時間に応じて生成頻度と移動速度が上昇する
+      - 一時停止とリスタートに対応する
+  - id: prime-bingo
+    name: 素数ビンゴ
+    entrypoint: index.html
+    type: turn-based
+    rules:
+      - 5×5のカードを素数からランダム生成する
+      - 素数を順番に抽選する
+      - 抽選済み数字だけカード上でマークできる
+      - 縦・横・斜めの完成ラインを表示する
+      - 新しいカードで再プレイできる
+
+architecture:
+  browser_entrypoint: index.html
+  dependencies: []
+  source_of_truth_note: |
+    index.html は2モードをすぐ遊べる軽量なブラウザ版。
+    src/PrimeBingo.tsx は初期プロトタイプ（倍数消去による素数探索）として保持し、
+    現行の2モードとは別の旧ルールであることをREADMEで明記する。
