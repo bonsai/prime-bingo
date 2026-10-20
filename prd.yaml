@@ -1,0 +1,127 @@
+# Product Requirements Document
+# 素数ビンゴ (Prime Bingo)
+
+product:
+  name: 素数ビンゴ
+  name_en: Prime Bingo
+  version: "0.1.0"
+  status: prototype
+  description: |
+    ビンゴ風UIを使った素数学習・体験ゲーム。
+    7×7グリッド上の数字を選び、その倍数を消していくことで
+    自然に素数が残り・集まる仕組み（エラトステネスの篩の遊び化）。
+
+problem:
+  statement: |
+    素数の概念やエラトステネスの篩は教科書では理解しづらい。
+    「選んで消す」操作を通じて直感的に素数を体験できる
+    軽量なインタラクティブコンテンツが不足している。
+  target_users:
+    - 素数や倍数の概念を楽しく学びたい小中学生
+    - 数学の導入・復習をしたい保護者・教育者
+    - 軽い脳トレを求める一般ユーザー
+
+goals:
+  primary:
+    - ユーザーが「倍数を消す」操作を通じて素数を自然に発見する
+    - 1プレイ5分以内で完結する軽量体験を提供する
+  secondary:
+    - スコアと集めた素数リストで達成感を与える
+    - エラトステネスの篩のアルゴリズムを体感させる
+
+core_loop:
+  - グリッド上の数字を1つ選択する
+  - 選択した数の倍数（自分以外）が消える
+  - 選択した数が素数なら「素数確定」しスコア加算
+  - 合成数なら自分自身も消える
+  - 残った素数を集めていく
+  - 選択可能な数字がなくなったら終了
+
+features:
+  must_have:
+    - id: F01
+      name: 7×7グリッド表示
+      description: 1〜49の数字を7×7のビンゴ風グリッドで表示する
+    - id: F02
+      name: 倍数消去
+      description: 選んだ数の倍数をグリッドから消す（cleared状態にする）
+    - id: F03
+      name: 素数判定と確定
+      description: 選んだ数が素数の場合、prime状態にしてスコアに加算する
+    - id: F04
+      name: スコア表示
+      description: 確定した素数の合計値をリアルタイムで表示する
+    - id: F05
+      name: 集めた素数リスト
+      description: 確定した素数を一覧表示する
+    - id: F06
+      name: リセット機能
+      description: いつでも初期状態に戻せる
+    - id: F07
+      name: 残り数・メッセージ表示
+      description: 残りの選択可能数と操作フィードバックを表示する
+
+  nice_to_have:
+    - id: F08
+      name: ヒント機能
+      description: 次に選ぶと効率が良い素数をハイライトする
+    - id: F09
+      name: 手数カウント
+      description: 何回選択したかを表示する
+    - id: F10
+      name: タイムアタックモード
+      description: 制限時間内にスコアを稼ぐモード
+    - id: F11
+      name: 効果音・アニメーション
+      description: 消去・素数確定時のフィードバック強化
+    - id: F12
+      name: サイズ切り替え
+      description: 5×5 / 7×7 / 10×10 を選択可能にする
+
+ui_ux:
+  style: dark theme, modern, minimal
+  layout:
+    - ヘッダー（タイトル + サブタイトル）
+    - ステータスバー（残り数 / スコア）
+    - メッセージエリア
+    - 7×7グリッド
+    - 集めた素数リスト
+    - リセットボタン
+    - ヒントテキスト
+  interaction:
+    - セルクリックで選択
+    - ホバーで軽い拡大と枠線強調
+    - 素数セルはグラデーション + グロー
+    - 消えたセルは打ち消し線 + 低彩度
+
+technical:
+  stack:
+    frontend: React + TypeScript (TSX)
+    styling: CSS-in-JS (styleタグ) または Tailwind
+  constraints:
+    - 外部ライブラリ依存を最小限にする（純粋なReactで動作）
+    - モバイルファースト（最大幅480px程度）
+    - 素数判定はクライアントサイドで完結
+
+success_metrics:
+  - 1プレイ完了率 > 70%
+  - 平均プレイ時間 2〜5分
+  - リセット後の再プレイ率
+
+out_of_scope:
+  - マルチプレイヤー
+  - アカウント・ランキング
+  - サーバーサイド処理
+  - 複雑なチュートリアル
+
+open_questions:
+  - 1を素数扱いするか？（現仕様では素数ではない）
+  - 合成数を選んだ場合のペナルティをどうするか
+  - 教育用途向けに解説モードを追加するか
+
+changelog:
+  - version: "0.1.0"
+    date: "2026-10-20"
+    changes:
+      - 初版PRD作成
+      - 基本機能（F01〜F07）を定義
