@@ -1,0 +1,115 @@
+# みっつのアイデア整理 — 素数学習ゲーム集
+# 3つのプレイ可能なアイデアを1枚の YAML にまとめる（ルールの正は各 PRD / 実装）
+meta:
+  version: 1
+  updated: 2026-10-20
+  repo: bonsai/prime-bingo
+  structure: monorepo (npm workspaces: web / tui)
+  purpose: >-
+    素数と倍数の違いを「操作して体感」で学ぶ。
+    3アイデアは同じ学習テーマを、違う操作軸で攻める。
+
+# 3アイデア共通の背骨
+shared:
+  theme: 素数 vs 倍数
+  learning_goals:
+    - 素数を一見で見分ける（2, 3, 5, 7, 11, 13, ...）
+    - 倍数は「割れる・消える」性質を体感する
+    - 素数はいかなる隣接でも崩れない（1と自分以外に約数がない）
+  common:
+    - 素数判定はクライアントサイド完結（サーバー・アカウント不要）
+    - スコア + 制限時間/リスタートによる即時フィードバック
+    - 対象は学習者（初心者〜中級者）
+
+# 出発点（3アイデアの元祖・参照用に保持）
+lineage:
+  - id: prototype
+    name: 倍数を消して素数を集める（元Reactプロトタイプ）
+    file: web/src/PrimeBingo.tsx
+    prd: web/prd.yaml
+    note: 参照用に保持。プレイ可能なモードとしては含めない
+
+ideas:
+  - id: hunter
+    name: 素数ハンター
+    emoji: 🎯
+    surface: web（ブラウザ / タップ操作）
+    location: web/index.html のモード1
+    concept: 画面内を動く数字をタップして素数を集めるアクションゲーム
+    rules:
+      - 60秒間、動く数字をタップして素数を集める
+      - 黄金色の素数は +10点、素数ではない数字は −5点
+      - 時間とともに数字の生成頻度と移動速度が上がる
+      - 一時停止・リスタート対応
+    learning_focus: 時間圧下での素数の「素認（一見即判定）」
+    practice_axis: 判定の速さ
+    tech: vanilla HTML / CSS / JavaScript（ビルド不要）
+    status: playable
+
+  - id: bingo
+    name: 素数ビンゴ
+    emoji: 🎱
+    surface: web（ブラウザ / タップ操作）
+    location: web/index.html のモード2
+    concept: 素数だけで構成した 5×5 ビンゴカードで縦・横・斜めを狙う
+    rules:
+      - カードは素数のみの 5×5（新カードは素数 200 までで変動）
+      - 数字を順番に引き、呼ばれた数字をカード上でマーク
+      - 縦・横・斜めのラインをそろえてビンゴ
+      - 新しいカードで何度でも再挑戦
+    learning_focus: 素数一覧との反復接触・序列の暗記
+    practice_axis: 素数の反復量
+    tech: vanilla HTML / CSS / JavaScript（ビルド不要）
+    status: playable
+
+  - id: prime-fall
+    name: Prime Fall
+    emoji: ⚡
+    surface: tui（ターミナル / CLI キーボード操作）
+    location: tui/
+    prd: tui/prime-fall-prd.yaml
+    concept: >-
+      7×7 グリッドにタイルが落ちてくるパズル。複数は隣接する倍数で
+      割り切れると崩れ、素数は絶対に崩れない。崩して盤面を保ちながら
+      連鎖でスコアを稼ぐ。
+    rules:
+      - 盤面は 7×7、タイル値は 2..30
+      - 複数タイルは「隣接（上下左右）の値で割り切れる && 値 != 隣接値」で崩壊
+      - 素数タイルはいかなる条件でも崩れない（決定的な不変ルール）
+      - 崩壊 → 重力落下 → 上から補充 → 連鎖解消まで継続
+      - 欠点ゲームオーバー: タイルが積み上がって天井到達で終了
+    scoring:
+      single_break: 10
+      cascade_bonus: 連鎖ごとに +5（10, 15, 20, ...）
+      trapped_harvest: 素数に挟まれた複数の崩壊で +25
+    teaching:
+      feedback: 崩壊時に理由を表示（例: "12 broke: 12 is a multiple of 4 (4 × 3 = 12)"）
+      hint: h で崩せる複数ハイライト / f で因数分解ピープ
+      tutorial: 初回に 6 を 2 の隣で崩す実演と、5 が隣でも 10 だけ崩れる反例
+      difficulty: 値域 2..12 → 2..20（平方数導入）→ 2..30（大素数）
+      banner: 常設ミニ語彙集「prime = 崩れない / multiple = 隣接で崩れる」
+    controls: ←→移動・↓ソフトドロップ・↑/spaceハードドロップ・pポーズ・q終了・r再開・hヒント・f因数
+    tech: TypeScript + tsx + ink（React for terminal）
+    code:
+      - tui/src/index.tsx
+      - tui/src/game/rules.ts   # 素数判定・倍数/崩壊ロジック
+      - tui/src/game/grid.ts    # 盤面・重力・連鎖解消
+      - tui/src/game/spawn.ts   # タイル生成
+      - tui/src/game/scoring.ts # スコア・連鎖倍率
+    status: implemented — 未実行（npm install 未完了）
+
+# 3アイデアの使い分け（学習フェーズ別の役割）
+comparison:
+  axes:
+    判定の速さ:    hunter > prime-fall > bingo
+    素数の反復量:  bingo > hunter > prime-fall
+    倍数の性質の体感: prime-fall のみ（「割れると崩れる」を直接体験）
+    操作: web タップ / web タップ / キーボード
+  roles:
+    bingo:      素数リストを「当てる」側（受動・反復）
+    hunter:     素数を「探す」側（能動・速度）
+    prime-fall: 倍数の「性質で戦う」側（能動・推論）
+
+next:
+  - [ ] tui の npm install と初回実行（リポジトリルート: npm install && npm run tui）
+  - [ ] 進捗・スコアを3ゲーム横断で記録できるなら YAML で共有

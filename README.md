@@ -40,6 +40,7 @@ npm run tui     # = npm run start --workspace tui（tsx src/index.tsx）
 ```
 .
 ├── package.json          # workspaces: ["web", "tui"]
+├── ideas.yaml            # 3つのアイデア整理（素数ハンター / 素数ビンゴ / Prime Fall）
 ├── index.html            # GitHub Pages 用エントリ → web/ へリダイレクト
 ├── web/                  # ブラウザ版（依存なし）
 │   ├── index.html        # 2モード切替の本体（Vanilla HTML/CSS/JS）
