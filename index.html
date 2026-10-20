@@ -61,6 +61,11 @@ function switchMode(mode){
  const hunt=mode==='hunt';
  $('huntMode').classList.toggle('hidden',!hunt); $('bingoMode').classList.toggle('hidden',hunt);
  $('huntTab').setAttribute('aria-selected',String(hunt)); $('bingoTab').setAttribute('aria-selected',String(!hunt));
+ // Hidden mode should not keep animating in the background.
+ if(!hunt && running && !paused){
+  paused=true;cancelAnimationFrame(raf);$('huntPause').textContent='▶ 再開';
+  $('huntStatus').textContent='ビンゴ中は一時停止中';
+ }
 }
 $('huntTab').addEventListener('click',()=>switchMode('hunt'));
 $('bingoTab').addEventListener('click',()=>switchMode('bingo'));
