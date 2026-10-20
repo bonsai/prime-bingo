@@ -1,0 +1,172 @@
+meta:
+  name: Prime Fall
+  type: puzzle game (educational)
+  platform: TUI (terminal user interface)
+  runtime: tsx (TypeScript + JSX)
+  status: draft
+  version: 0.1
+  theme: autumn / fall — leaves, acorns, pumpkins, harvest colors
+  audience: learners practicing prime numbers and multiples
+
+summary: >-
+  A 7x7 educational puzzle game played in the terminal. Numbered tiles
+  fall into the grid like leaves. Composite tiles can break when they are
+  multiples of a neighbor; prime tiles can never break, acting as
+  permanent obstacles. By playing, the user learns to recognize prime
+  numbers and to spot multiples. Clear tiles to score, keep primes from
+  stacking the board to the top.
+
+learning_goals:
+  primary:
+    - Recognize prime numbers on sight (2, 3, 5, 7, 11, 13, ...).
+    - Understand that prime numbers cannot be divided by any number but
+      1 and themselves — expressed in-game as "primes cannot break".
+  secondary:
+    - Identify multiples: a tile breaks when its value is a multiple of
+      an adjacent tile (e.g. 12 next to 4 → 12 is a multiple of 4).
+    - Practice factor reasoning under time pressure to plan cascades.
+  success_signal: >-
+    A player who completes several rounds should be able to name whether
+    a shown number is prime or composite and give one of its factors.
+
+grid:
+  rows: 7
+  columns: 7
+  cell_types:
+    - prime_tile:
+        description: A tile whose value is prime (2, 3, 5, 7, 11, ...).
+        breakable: false
+        rule: primes cannot break — they are never removed by matching
+      composite_tile:
+        description: A tile whose value is composite (4, 6, 8, 9, 10, ...).
+        breakable: true
+        rule: breaks if it is a multiple of an adjacent tile's value
+
+rules:
+  matching:
+    adjacency: orthogonal (up / down / left / right)
+    break_condition: >-
+      A composite tile breaks when its value is an exact multiple
+      (value % neighbor == 0 and value != neighbor) of at least one
+      orthogonally adjacent tile.
+    prime_exception: >-
+      Prime tiles never break under any condition, even when they are
+      adjacent to a multiple of themselves.
+    multiple_hits: >-
+      If a tile qualifies to break via multiple neighbors, it still breaks
+      only once (no extra points per extra neighbor).
+  falling:
+    mechanic: gravity pulls surviving tiles down after every break
+    refill: new random tiles fall in from the top of the column
+    spawn_range: primes and composites both spawn; values 2..30
+  game_over: >-
+    The game ends when the stack of surviving tiles (primarily primes)
+    reaches the top of the grid and no further fall is possible.
+
+scoring:
+  single_break: 10
+  chain_bonus: >-
+    Each additional break triggered in the same gravity cascade
+    multiplies points by +5 (10, 15, 20, ...).
+  prime_trap: >-
+    Breaking a composite that is sandwiched between two primes
+    awards +25 (a "trapped harvest").
+
+controls:
+  - key: left / right
+    action: move the falling tile horizontally
+  - key: down
+    action: soft drop — move the falling tile down one row
+  - key: up or space
+    action: hard drop — drop the falling tile to the lowest free cell
+  - key: p
+    action: pause / resume
+  - key: q or esc
+    action: quit
+  - key: r
+    action: restart after game over
+
+gameplay_loop:
+  - One tile falls at a time from the top of a chosen column.
+  - Player steers it and hard/soft drops it into the 7x7 grid.
+  - After it lands, check all orthogonally adjacent composite tiles for
+    the multiple rule; mark qualifying composites to break.
+  - Remove broken tiles, award score, apply gravity, refill from top.
+  - Repeat cascades until no more tiles qualify.
+  - Spawn the next tile; continue until the board tops out.
+
+teaching:
+  prime_feedback:
+    when: a prime tile blocks a break or is highlighted
+    show: "7 is prime — it has no factors besides 1 and 7, so it cannot break."
+  multiple_feedback:
+    when: a composite tile breaks
+    show: "12 broke: 12 is a multiple of 4 (4 × 3 = 12)."
+  hint_mode:
+    key: h
+    action: >-
+      Highlight all breakable composites and pulse primes in a different
+      color, with a one-line legend explaining why.
+  factor_peek:
+    key: f (while hovering a landed tile)
+    show: >-
+      Popup line listing the tile's type and factor pairs, e.g.
+      "9 = 3 × 3 — composite, multiple of 3".
+  first_run_tutorial:
+    - Explain prime vs composite with examples on the 7x7 board.
+    - Show one worked example: place 6 next to 2, watch 6 break (2 × 3 = 6).
+    - Show one counter-example: place 5 next to 10 — 5 is prime and
+      stays, 10 is a multiple and breaks.
+  difficulty_ramp:
+    level_1: values 2..12 — small primes and obvious multiples
+    level_2: values 2..20 — introduces squares (4, 9, 16)
+    level_3: values 2..30 — larger primes (17, 19, 23, 29) rarely break
+  vocabulary_banner: >-
+    Persistent mini-glossary at the bottom: "prime = breaks never ·
+    multiple = breaks when adjacent".
+
+ui:
+  layout:
+    center: 7x7 board rendered with box-drawing characters
+    left_panel: score, level, chain multiplier
+    right_panel: next tile preview, controls help
+    bottom: status bar (message / game over banner)
+  styling:
+    palette: autumn — amber, rust, olive, maroon, cream
+    prime_tiles: bold, acorn or 🌰 accent, cool slate background
+    composite_tiles: leaf 🍂 accent, warm background
+    highlighted_breaks: blinking before removal
+    falling_tile: pumpkin 🎃 accent
+  responsiveness: redraw only changed cells; 30 fps cap for animations
+
+tech:
+  language: TypeScript
+  runtime: tsx
+  ui_library: prefer a React-style TUI (e.g. ink) since tsx/JSX is required
+  structure:
+    - src/game/grid.ts        # grid state, gravity, cascade resolution
+    - src/game/rules.ts       # prime check, multiple/break logic
+    - src/game/spawn.ts       # tile generation
+    - src/game/scoring.ts     # score and chain multiplier
+    - src/ui/Board.tsx        # 7x7 board component
+    - src/ui/Panels.tsx       # score / next / help panels
+    - src/ui/App.tsx          # main app, input handling, game loop
+    - src/index.tsx           # entrypoint
+  testing: unit-test rules.ts and grid.ts (pure logic, no TUI)
+
+acceptance_criteria:
+  - Grid is exactly 7x7 and renders in the terminal.
+  - Composite tiles break only when an adjacent value divides them.
+  - Prime tiles are never removed by the break rule.
+  - Gravity + refill work after every break, including multi-step cascades.
+  - Game ends when the board tops out; score is displayed.
+  - Breaks display a "multiple of" explanation (e.g. "12 = 4 × 3").
+  - Primes display a "prime, cannot break" explanation when relevant.
+  - Hint mode (h) and factor peek (f) work as specified.
+  - First-run tutorial explains prime vs composite before play.
+  - Runs with: npx tsx src/index.tsx
+
+non_goals:
+  - multiplayer
+  - persistent online leaderboards
+  - non-orthogonal adjacency

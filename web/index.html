@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14141e">
+<title>PRIME BINGO | 素数で遊ぼう</title>
+<style>
+:root{color-scheme:dark;--bg:#14141e;--panel:#202033;--gold:#ffc832;--blue:#6496fa;--muted:#a8a8bd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#25253c,var(--bg) 55%);color:#f7f7ff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+header{max-width:1000px;margin:auto;padding:24px 18px 12px}h1{margin:0;font-size:clamp(1.8rem,5vw,3rem);letter-spacing:.04em}header p{color:var(--muted);margin:.4rem 0 0}
+main{max-width:1000px;margin:auto;padding:12px 18px 36px}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px}.tab,button{border:1px solid #45455f;border-radius:12px;padding:11px 16px;background:#292941;color:#fff;font:inherit;cursor:pointer}.tab[aria-selected=true],button.primary{background:var(--gold);border-color:var(--gold);color:#241b00;font-weight:750}.panel{background:#1c1c2b;border:1px solid #37374d;border-radius:18px;padding:16px;box-shadow:0 12px 36px #0002}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.stat{background:#29293d;border-radius:12px;padding:9px 13px;min-width:100px}.stat small{display:block;color:var(--muted)}.stat strong{font-size:1.2rem}.hint{color:var(--muted);font-size:.94rem}.hidden{display:none!important}
+#huntCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#14141e;border-radius:14px;touch-action:manipulation}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.bingo-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.7fr);gap:18px;align-items:start}.bingo-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:0;font-weight:800;font-size:clamp(1rem,4vw,1.6rem);background:#292941;border:1px solid #45455f;border-radius:12px;min-width:0}.cell.marked{background:var(--gold);border-color:var(--gold);color:#241b00}.cell.free{background:#3b315b;color:#fff}.cell:disabled{cursor:default;opacity:1}.drawn-number{font-size:clamp(2.8rem,9vw,5rem);font-weight:900;color:var(--gold);line-height:1.1;margin:10px 0}.called-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.pill{border-radius:99px;background:#303047;padding:5px 9px;font-size:.9rem}.status{min-height:1.5em;color:var(--gold);font-weight:700;margin:10px 0}.foot{color:var(--muted);font-size:.85rem;margin-top:18px}
+@media(max-width:650px){.bingo-layout{grid-template-columns:1fr}.panel{padding:12px}.bingo-grid{gap:5px}.cell{border-radius:8px}}
+</style>
+</head>
+<body>
+<header><h1>PRIME BINGO <span aria-hidden="true">✦</span></h1><p>素数を見つける。素数でそろえる。数字で遊ぼう！</p></header>
+<main>
+<nav class="tabs" aria-label="ゲームモード">
+<button class="tab" id="huntTab" aria-selected="true">🎯 モード1：素数ハンター</button>
+<button class="tab" id="bingoTab" aria-selected="false">🎱 モード2：素数ビンゴ</button>
+</nav>
+<section id="huntMode" class="panel">
+<div class="stats">
+<div class="stat"><small>スコア</small><strong id="huntScore">0</strong></div>
+<div class="stat"><small>残り時間</small><strong id="huntTime">60秒</strong></div>
+<div class="stat"><small>ミス</small><strong id="huntMiss">0</strong></div>
+<div class="stat"><small>レベル</small><strong id="huntLevel">1</strong></div>
+</div>
+<p class="hint">黄金色は素数。タップして +10点！ 青紫色は素数ではない数字。タップすると −5点。時間がたつほど数字が増えて速くなるよ。</p>
+<canvas id="huntCanvas" width="800" height="600" aria-label="動く数字をタップして素数を集めるゲーム"></canvas>
+<div id="huntStatus" class="status" aria-live="polite">スタートして素数を集めよう！</div>
+<div class="actions"><button class="primary" id="huntStart">▶ スタート / もう一度</button><button id="huntPause">Ⅱ 一時停止</button></div>
+</section>
+<section id="bingoMode" class="panel hidden">
+<div class="stats">
+<div class="stat"><small>ビンゴ数</small><strong id="bingoLines">0</strong></div>
+<div class="stat"><small>呼び出し済み</small><strong id="bingoCount">0 / 25</strong></div>
+</div>
+<p class="hint">素数だけで作ったビンゴカード！「数字を引く」を押して、呼ばれた数字がカードにあったらタップ。縦・横・斜めをそろえてビンゴを目指そう。</p>
+<div class="bingo-layout">
+<div id="bingoGrid" class="bingo-grid" aria-label="ビンゴカード"></div>
+<aside>
+<div class="hint">今回の数字</div><div id="drawnNumber" class="drawn-number">—</div>
+<div id="bingoStatus" class="status" aria-live="polite">カードを作ってゲーム開始！</div>
+<div class="actions"><button class="primary" id="drawButton">🎱 数字を引く</button><button id="newCardButton">新しいカード</button></div>
+<div class="hint" style="margin-top:16px">呼び出した数字</div><div id="calledList" class="called-list"></div>
+</aside>
+</div>
+</section>
+<p class="foot">PRIME BINGO · ブラウザだけで遊べます。数字の判定はゲーム内で行います。</p>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const prime = n => { if(n < 2) return false; for(let i=2;i*i<=n;i++) if(n%i===0) return false; return true; };
+const primes = Array.from({length:200},(_,i)=>i+1).filter(prime);
+function switchMode(mode){
+ const hunt=mode==='hunt';
+ $('huntMode').classList.toggle('hidden',!hunt); $('bingoMode').classList.toggle('hidden',hunt);
+ $('huntTab').setAttribute('aria-selected',String(hunt)); $('bingoTab').setAttribute('aria-selected',String(!hunt));
+ // Hidden mode should not keep animating in the background.
+ if(!hunt && running && !paused){
+  paused=true;cancelAnimationFrame(raf);$('huntPause').textContent='▶ 再開';
+  $('huntStatus').textContent='ビンゴ中は一時停止中';
+ }
+}
+$('huntTab').addEventListener('click',()=>switchMode('hunt'));
+$('bingoTab').addEventListener('click',()=>switchMode('bingo'));
+
+// Mode 1: moving-number prime hunter
+const canvas=$('huntCanvas'),ctx=canvas.getContext('2d');
+let balls=[],score=0,miss=0,seconds=60,elapsed=0,running=false,paused=false,last=0,spawnClock=0,raf=0,statusClock=0;
+function addBall(){
+ if(balls.length>=30)return;
+ const value=1+Math.floor(Math.random()*100),r=27;
+ let x=45+Math.random()*(canvas.width-90),y=100+Math.random()*(canvas.height-145);
+ for(let k=0;k<12;k++){
+  x=45+Math.random()*(canvas.width-90);y=100+Math.random()*(canvas.height-145);
+  if(balls.every(b=>Math.hypot(b.x-x,b.y-y)>65))break;
+ }
+ balls.push({x,y,vx:(Math.random()*2-1)*1.3,vy:(Math.random()*2-1)*1.3,value,isPrime:prime(value),r,phase:Math.random()*6.28});
+}
+function startHunt(){
+ cancelAnimationFrame(raf);balls=[];score=0;miss=0;seconds=60;elapsed=0;spawnClock=0;last=0;running=true;paused=false;
+ for(let i=0;i<12;i++)addBall();
+ $('huntStart').textContent='↻ もう一度';$('huntPause').textContent='Ⅱ 一時停止';$('huntStatus').textContent='スタート！黄金の素数をタップ！';updateHuntStats();raf=requestAnimationFrame(huntLoop);
+}
+function updateHuntStats(){ $('huntScore').textContent=score;$('huntTime').textContent=Math.ceil(seconds)+'秒';$('huntMiss').textContent=miss;$('huntLevel').textContent=1+Math.floor(elapsed/15); }
+function huntLoop(now){
+ if(!running||paused)return;
+ if(!last)last=now;let dt=Math.min((now-last)/1000,.05);last=now;elapsed+=dt;seconds=Math.max(0,60-elapsed);spawnClock+=dt;
+ const interval=Math.max(.2,.9-elapsed*.008);
+ if(spawnClock>=interval&&balls.length<30){addBall();spawnClock=0;}
+ const speed=1+elapsed/45;
+ ctx.fillStyle='#14141e';ctx.fillRect(0,0,canvas.width,canvas.height);
+ for(const b of balls){
+  b.x+=b.vx*speed;b.y+=b.vy*speed;b.phase+=dt*3;
+  if(b.x<b.r||b.x>canvas.width-b.r)b.vx*=-1;
+  if(b.y<90+b.r||b.y>canvas.height-b.r)b.vy*=-1;
+  b.x=Math.max(b.r,Math.min(canvas.width-b.r,b.x));b.y=Math.max(90+b.r,Math.min(canvas.height-b.r,b.y));
+  const pulse=Math.sin(b.phase)*3;
+  ctx.beginPath();ctx.arc(b.x,b.y,b.r+8+pulse,0,Math.PI*2);ctx.fillStyle=b.isPrime?'#ffc83226':'#6496fa26';ctx.fill();
+  ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=b.isPrime?'#ffc832':'#6496fa';ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.value,b.x,b.y);
+ }
+ updateHuntStats();
+ if(seconds<=0){running=false;$('huntStatus').textContent='タイムアップ！最終スコア：'+score+'点';ctx.fillStyle='#ffffff';ctx.font='bold 32px system-ui';ctx.textAlign='center';ctx.fillText('TIME UP!',canvas.width/2,canvas.height/2);return;}
+ raf=requestAnimationFrame(huntLoop);
+}
+function canvasPoint(e){
+ const rect=canvas.getBoundingClientRect();
+ return {x:(e.clientX-rect.left)*canvas.width/rect.width,y:(e.clientY-rect.top)*canvas.height/rect.height};
+}
+canvas.addEventListener('pointerdown',e=>{
+ if(!running||paused)return;const p=canvasPoint(e);
+ for(let i=balls.length-1;i>=0;i--){const b=balls[i];if(Math.hypot(p.x-b.x,p.y-b.y)<=b.r+8){
+  if(b.isPrime){score+=10;$('huntStatus').textContent='PRIME! +10点 ✨';}
+  else{score=Math.max(0,score-5);miss++;$('huntStatus').textContent='素数じゃない！ −5点';}
+  balls.splice(i,1);updateHuntStats();return;
+ }}
+});
+$('huntStart').addEventListener('click',startHunt);
+$('huntPause').addEventListener('click',()=>{
+ if(!running)return;
+ paused=!paused;$('huntPause').textContent=paused?'▶ 再開':'Ⅱ 一時停止';
+ if(paused){cancelAnimationFrame(raf);$('huntStatus').textContent='一時停止中';}
+ else{last=0;raf=requestAnimationFrame(huntLoop);}
+});
+
+// Mode 2: prime bingo
+let card=[],called=[],marked=new Set(),bingoFinished=false;
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function makeCard(){
+ card=shuffle([...primes]).slice(0,25);called=[];marked=new Set();bingoFinished=false;
+ $('drawnNumber').textContent='—';$('bingoStatus').textContent='数字を引いて、カードをチェック！';renderCard();renderCalled();updateBingoStats();
+}
+function renderCard(){
+ const grid=$('bingoGrid');grid.innerHTML='';
+ card.forEach((n,i)=>{
+  const btn=document.createElement('button');btn.className='cell';btn.textContent=n;btn.type='button';btn.setAttribute('aria-label','素数 '+n);
+  btn.disabled=!called.includes(n)||bingoFinished;
+  if(marked.has(n))btn.classList.add('marked');
+  btn.addEventListener('click',()=>{
+   if(!called.includes(n)||bingoFinished)return;
+   if(marked.has(n))marked.delete(n);else marked.add(n);
+   renderCard();checkBingo();
+  });
+  grid.appendChild(btn);
+ });
+}
+function renderCalled(){
+ const list=$('calledList');list.innerHTML='';
+ called.slice().reverse().forEach(n=>{const span=document.createElement('span');span.className='pill';span.textContent=n;list.appendChild(span);});
+}
+function countLines(){
+ let count=0;
+ for(let r=0;r<5;r++)if(Array.from({length:5},(_,c)=>card[r*5+c]).every(n=>marked.has(n)))count++;
+ for(let c=0;c<5;c++)if(Array.from({length:5},(_,r)=>card[r*5+c]).every(n=>marked.has(n)))count++;
+ if(Array.from({length:5},(_,i)=>card[i*5+i]).every(n=>marked.has(n)))count++;
+ if(Array.from({length:5},(_,i)=>card[i*5+4-i]).every(n=>marked.has(n)))count++;
+ return count;
+}
+function updateBingoStats(){$('bingoLines').textContent=countLines();$('bingoCount').textContent=called.length+' / 25';}
+function checkBingo(){
+ const lines=countLines();updateBingoStats();
+ if(lines>0){$('bingoStatus').textContent='🎉 BINGO！ '+lines+'ライン達成！';if(lines>=3)bingoFinished=true;renderCard();}
+}
+$('drawButton').addEventListener('click',()=>{
+ if(bingoFinished){$('bingoStatus').textContent='新しいカードでまた遊ぼう！';return;}
+ const remaining=shuffle(primes.filter(n=>!called.includes(n)));
+ if(!remaining.length){$('bingoStatus').textContent='数字がなくなったよ。新しいカードを作ろう！';return;}
+ const n=remaining[0];called.push(n);$('drawnNumber').textContent=n;renderCalled();renderCard();updateBingoStats();
+ $('bingoStatus').textContent=card.includes(n)?'カードに '+n+' があるよ！タップしてマーク！':' '+n+' はカードにないよ。次の数字へ！';
+});
+$('newCardButton').addEventListener('click',makeCard);
+makeCard();startHunt();
+})();
+</script>
+</body>
+</html>

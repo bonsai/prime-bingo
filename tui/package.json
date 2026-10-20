@@ -1,0 +1,18 @@
+{
+  "name": "prime-fall",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prime Fall — educational 7x7 prime/multiples puzzle game in the terminal",
+  "scripts": {
+    "start": "tsx src/index.tsx",
+    "dev": "tsx src/index.tsx"
+  },
+  "dependencies": {
+    "ink": "^4.4.1",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "tsx": "^4.19.2"
+  }
+}

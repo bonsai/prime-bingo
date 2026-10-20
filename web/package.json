@@ -1,0 +1,9 @@
+{
+  "name": "prime-bingo-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "依存なしブラウザ版（素数ハンター / 素数ビンゴ）。web/index.html を開くだけでプレイ可能",
+  "scripts": {
+    "start": "npx --yes serve ."
+  }
+}

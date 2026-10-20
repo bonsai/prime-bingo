@@ -1,0 +1,13 @@
+{
+  "name": "prime-bingo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "素数学習ゲーム集のモノレポ — web（ブラウザ版）+ tui（ターミナル版 Prime Fall）",
+  "workspaces": [
+    "web",
+    "tui"
+  ],
+  "scripts": {
+    "tui": "npm run start --workspace tui"
+  }
+}
